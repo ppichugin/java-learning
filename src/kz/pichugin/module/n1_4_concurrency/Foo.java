@@ -6,33 +6,37 @@ public class Foo {
     static volatile int count = 1;
     static Semaphore semCon = new Semaphore(1);
 
-    public void first(Runnable r) {
-        tryBlock(r, 1, 2);
+    public void first(Runnable r) throws InterruptedException {
+        while (count != 1) {
+            Thread.onSpinWait();
+        }
+        semCon.acquire();
+        r.run();
+        count = 2;
+        semCon.release();
     }
 
-    public void second(Runnable r) {
-        tryBlock(r, 2, 3);
+    public void second(Runnable r) throws InterruptedException {
+        while (count != 2) {
+            Thread.onSpinWait();
+        }
+        semCon.acquire();
+        r.run();
+        count = 3;
+        semCon.release();
     }
 
-    public void third(Runnable r) {
-        tryBlock(r, 3, 1);
+    public void third(Runnable r) throws InterruptedException {
+        while (count != 3) {
+            Thread.onSpinWait();
+        }
+        semCon.acquire();
+        r.run();
+        count = 1;
+        semCon.release();
     }
 
     protected synchronized void print(String msg) {
-        System.out.println(msg);
-    }
-
-    private void tryBlock(Runnable r, int awaitingCounter, int nextThreadToRelease) {
-        try {
-            while (count != awaitingCounter) {
-                Thread.onSpinWait();
-            }
-            semCon.acquire();
-            r.run();
-            count = nextThreadToRelease;
-            semCon.release();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.print(msg);
     }
 }

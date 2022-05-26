@@ -8,9 +8,27 @@ public class FooMain {
         Runnable printSecond = () -> foo.print("second");
         Runnable printThird = () -> foo.print("third");
 
-        Thread threadA = new Thread(() -> foo.first(printFirst), "Thread A");
-        Thread threadB = new Thread(() -> foo.second(printSecond), "Thread B");
-        Thread threadC = new Thread(() -> foo.third(printThird), "Thread C");
+        Thread threadA = new Thread(() -> {
+            try {
+                foo.first(printFirst);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, "Thread A");
+        Thread threadB = new Thread(() -> {
+            try {
+                foo.second(printSecond);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, "Thread B");
+        Thread threadC = new Thread(() -> {
+            try {
+                foo.third(printThird);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }, "Thread C");
 
         threadA.start();
         threadC.start();
