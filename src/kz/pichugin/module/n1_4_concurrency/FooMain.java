@@ -1,8 +1,6 @@
 package kz.pichugin.module.n1_4_concurrency;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class FooMain {
     public static void main(String[] args) {
@@ -11,30 +9,33 @@ public class FooMain {
         Runnable printSecond = () -> foo.print("second");
         Runnable printThird = () -> foo.print("third");
 
-        Runnable testOne = () -> foo.first(printFirst);
-        Runnable testTwo = () -> foo.second(printSecond);
-        Runnable testThree = () -> foo.third(printThird);
+        Runnable run1 = () -> foo.first(printFirst);
+        Runnable run2 = () -> foo.second(printSecond);
+        Runnable run3 = () -> foo.third(printThird);
 
-//        Thread threadA = new Thread(() -> foo.first(printFirst), "Thread A");
-//        Thread threadB = new Thread(() -> foo.second(printSecond), "Thread B");
-//        Thread threadC = new Thread(() -> foo.third(printThird), "Thread C");
-//        threadA.start();
-//        threadC.start();
-//        threadB.start();
+        System.out.print("Solution on threads: ");
+        Thread threadA = new Thread(() -> foo.first(printFirst), "Thread A");
+        Thread threadB = new Thread(() -> foo.second(printSecond), "Thread B");
+        Thread threadC = new Thread(() -> foo.third(printThird), "Thread C");
+        threadC.start();
+        threadA.start();
+        threadB.start();
+        try {
+            threadA.join();
+            threadB.join();
+            threadC.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-        Executor myExecutor = Executors.newFixedThreadPool(3);
-        //NOT WORKING
-//        CompletableFuture<Void> first = CompletableFuture.runAsync(printFirst, myExecutor);
-//        CompletableFuture<Void> second = CompletableFuture.runAsync(printSecond, myExecutor);
-//        CompletableFuture<Void> third = CompletableFuture.runAsync(printThird, myExecutor);
-//        CompletableFuture.allOf(first, second, third);
+        System.out.print("\nSolution on CompletableFuture: ");
+        CompletableFuture<Void> task1 = CompletableFuture.runAsync(run1);
+        CompletableFuture<Void> task2 = CompletableFuture.runAsync(run2);
+        CompletableFuture<Void> task3 = CompletableFuture.runAsync(run3);
+        CompletableFuture<Void> allTasks = CompletableFuture.allOf(task2, task1, task3);
 
-
-        //NOT WORKING
-        CompletableFuture
-                .runAsync(testOne, myExecutor)
-                .thenRunAsync(testThree, myExecutor)
-                .thenRunAsync(testTwo, myExecutor);
-
+        while (!allTasks.isDone()) {
+        }
+        System.out.println("\nCompleted");
     }
 }

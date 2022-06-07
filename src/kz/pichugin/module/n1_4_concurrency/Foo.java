@@ -3,46 +3,28 @@ package kz.pichugin.module.n1_4_concurrency;
 import java.util.concurrent.Semaphore;
 
 public class Foo {
-    static volatile int count = 1;
-    static Semaphore semCon = new Semaphore(1);
+    private static final Semaphore sem2_3 = new Semaphore(0);
+    private static final Semaphore sem3_1 = new Semaphore(0);
 
     public void first(Runnable r) {
-        while (count != 1) {
-            Thread.onSpinWait();
-        }
-        try {
-            semCon.acquire();
-            r.run();
-            count = 2;
-            semCon.release();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        r.run();
+        sem2_3.release();
     }
 
     public void second(Runnable r) {
-        while (count != 2) {
-            Thread.onSpinWait();
-        }
         try {
-            semCon.acquire();
+            sem2_3.acquire();
             r.run();
-            count = 3;
-            semCon.release();
+            sem3_1.release();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     public void third(Runnable r) {
-        while (count != 3) {
-            Thread.onSpinWait();
-        }
         try {
-            semCon.acquire();
+            sem3_1.acquire();
             r.run();
-            count = 1;
-            semCon.release();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
